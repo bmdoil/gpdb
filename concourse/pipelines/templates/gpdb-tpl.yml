@@ -55,6 +55,7 @@ anchors:
   delete_on_failure: true
   generate_random_name: true
   terraform_source: ccp_src/google/
+  plugin_dir: ../../terraform.d/plugin-cache/linux_amd64
 
 - &ccp_default_vars
   instance_type: n1-standard-1
@@ -161,6 +162,7 @@ anchors:
       # and different teams will place there clusters' tfstate files under different paths
       bucket: gpdb5-pipeline-dynamic-terraform
       bucket_path: clusters-google/
+
 
 - &set_failed_two_clusters
   in_parallel:
@@ -506,6 +508,17 @@ resources:
     branch: ((ccp-git-branch))
     private_key: ((ccp-git-key))
     uri: ((ccp-git-remote))
+
+- name: terraform.d
+  type: s3
+  icon: amazon-drive
+  source:
+    bucket: ccp-terraform-provider-plugins
+    versioned_file: plugin-cache.tgz
+    access_key_id: {{tf-machine-access-key-id}}
+    secret_access_key: {{tf-machine-secret-access-key}}
+    region_name: {{aws-region}}
+
 
 {% if "centos6" in os_types or
       "ICW"     in test_sections %}
@@ -1889,6 +1902,9 @@ jobs:
         passed: [gate_resource_groups_start]
         resource: binary_swap_gpdb_centos6
         trigger: [[ test_trigger ]]
+      - get: terraform.d
+        params:
+          unpack: true
   - put: terraform
     params:
       <<: *ccp_default_params
@@ -1928,6 +1944,9 @@ jobs:
         passed: [gate_resource_groups_start]
         resource: binary_swap_gpdb_centos6
         trigger: [[ test_trigger ]]
+      - get: terraform.d
+        params:
+          unpack: true
   - put: terraform
     params:
       <<: *ccp_default_params
