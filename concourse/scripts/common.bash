@@ -113,32 +113,6 @@ function run_test() {
     su gpadmin -c "bash /opt/run_test.sh $(pwd)"
 }
 
-function install_python_requirements_on_single_host() {
-    # installing python requirements on single host only happens for demo cluster tests,
-    # and is run by root user. Therefore, pip install as root user to make items globally
-    # available
-    local requirements_txt="$1"
-
-    export PIP_CACHE_DIR=${PWD}/pip-cache-dir
-    pip3 --retries 10 install -r ${requirements_txt}
-}
-
-function install_python_requirements_on_multi_host() {
-    # installing python requirements on multi host happens exclusively as gpadmin user.
-    # Therefore, add the --user flag and add the user path to the path in run_behave_test.sh
-    # the user flag is required for centos 7
-    local requirements_txt="$1"
-
-    # Set PIP Download cache directory
-    export PIP_CACHE_DIR=/home/gpadmin/pip-cache-dir
-
-    pip3 --retries 10 install --user -r ${requirements_txt}
-    while read -r host; do
-        scp ${requirements_txt} "$host":/tmp/requirements.txt
-        ssh $host PIP_CACHE_DIR=${PIP_CACHE_DIR} pip3 --retries 10 install --user -r /tmp/requirements.txt
-    done </tmp/hostfile_all
-}
-
 function setup_coverage() {
     # Enables coverage.py on all hosts in the cluster. Note that this function
     # modifies greenplum_path.sh, so callers need to source that file AFTER this
@@ -189,6 +163,7 @@ function tar_coverage() {
     tar --remove-files -cf "$prefix.tar" *
     popd
 }
+
 
 function add_ccache_support() {
 
