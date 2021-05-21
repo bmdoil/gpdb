@@ -66,20 +66,14 @@ endif
 export PYTHON=python
 ifneq "$(PYTHONHOME)" ""
 export PYTHON=$(PYTHONHOME)/bin/python
-aix7_ppc_64_PYTHON=$(PYTHONHOME)/bin/python2.7_64
-ifneq "$($(BLD_ARCH)_PYTHON)" ""
-export PYTHON=$($(BLD_ARCH)_PYTHON)
-endif
 endif
 
 # if PYTHONHOME was specified above, use it for the build
 ifneq "$(PYTHONHOME)" ""
-ifeq "$(findstring $(BLD_ARCH),aix7_ppc_64)" ""
 tmpPATH=$(PYTHONHOME)/bin:$(PATH)
 export PATH:=$(tmpPATH)
 tmpLD_LIBRARY_PATH=$(PYTHONHOME)/lib:$($(BLD_WHERE_THE_LIBRARY_THINGS_ARE))
 export $(BLD_WHERE_THE_LIBRARY_THINGS_ARE):=$(tmpLD_LIBRARY_PATH)
-endif
 endif
 
 ##
