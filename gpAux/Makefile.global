@@ -36,15 +36,10 @@ ifneq "$($(BLD_ARCH)_CXX)" ""
 export CXX=$($(BLD_ARCH)_CXX)
 endif
 
-# take over the path
-ifneq "$(BLD_PATH_FIXED)" "true"
-aix7_ppc_64_PATH_PREPEND=/opt/freeware/bin
-BLD_PATH_PREPEND=$($(BLD_ARCH)_PATH_PREPEND)
 ifneq "$(BLD_PATH_PREPEND)" ""
 export PATH:=$(BLD_PATH_PREPEND):$(PATH)
 endif
 export BLD_PATH_FIXED=true
-endif
 
 BLD_LD_LIBRARY_PATH_PREPEND=$($(BLD_ARCH)_LD_LIBRARY_PATH_PREPEND)
 ifneq "$(BLD_LD_LIBRARY_PATH_PREPEND)" ""
@@ -95,12 +90,6 @@ rhel8_x86_64_BLD_CFLAGS=-m64
 BLD_CFLAGS=$($(BLD_ARCH)_BLD_CFLAGS)
 
 BLD_LDFLAGS=$($(BLD_ARCH)_BLD_LDFLAGS)
-
-# See http://www.postgresql.org/docs/faqs.FAQ_AIX.html for an explanation of this
-ifneq "$(findstring $(BLD_ARCH),aix7_ppc_64)" ""
-export OBJECT_MODE=64
-export CONFIG_SHELL=/usr/bin/bash
-endif
 
 BLD_BITS:=$(strip $(findstring 32,$(BLD_ARCH)) $(findstring 64,$(BLD_ARCH)))
 ifeq "$(BLD_BITS)" ""
