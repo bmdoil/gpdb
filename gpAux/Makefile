@@ -388,10 +388,6 @@ CLIENTS_FILESET_BINEXT = $(strip $(tmpCLIENTS_FILESET_BINEXT))
 
 # define python file subset to ship by platform, as desired
 BLD_PYTHON_FILESET=.
-aix7_ppc_64_PYTHON_FILESET=bin/python* lib/*python* lib64/*python* include/python*
-ifneq "$($(BLD_ARCH)_PYTHON_FILESET)" ""
-BLD_PYTHON_FILESET=$($(BLD_ARCH)_PYTHON_FILESET)
-endif
 
 BLD_OS:=$(shell uname -s)
 Darwin_CLIENTS_LIBS=libcrypto.*.dylib libssl.*.dylib libpq.*.dylib* libkrb5.*.dylib libcom_err.*.dylib libldap_r-*.dylib libk5crypto.*.dylib libkrb5support.*.dylib liblber-*.dylib libyaml*.dylib
