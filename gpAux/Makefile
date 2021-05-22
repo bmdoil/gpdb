@@ -39,7 +39,7 @@ all : devel
 # tell included makefiles where to find build-top-level resources
 BLD_TOP:=$(shell sh -c pwd)
 include Makefile.global
-include Makefile.thirdparty
+
 
 ifneq "$(BLD_BITS)" ""
 export NO_M64=1
@@ -207,8 +207,7 @@ autoconf : RECONFIG
 # standardized build rules
 #---------------------------------------------------------------------
 
-BLD_LD_LIBRARY_PATH:=$($(BLD_ARCH)_LD_LIBRARY_PATH):$($(BLD_WHERE_THE_LIBRARY_THINGS_ARE))
-export $(BLD_WHERE_THE_LIBRARY_THINGS_ARE)=$(BLD_LD_LIBRARY_PATH)
+BLD_LD_LIBRARY_PATH:=$($(BLD_ARCH)_LD_LIBRARY_PATH)
 
 BLD_GPDB_BUILDSET=$($(BLD_ARCH)_GPDB_BUILDSET)
 perl_archlibexp:=$(shell perl -MConfig -e 'print $$Config{archlibexp}')
@@ -272,7 +271,6 @@ env.sh:
 	echo "export NO_M64=$(NO_M64)" >> env.sh
 	echo "export CC=\"$(strip $(BLD_CC) $(BLD_CFLAGS))\"" >> env.sh
 	echo "export PATH=$(PATH)" >> env.sh
-	echo "export $(BLD_WHERE_THE_LIBRARY_THINGS_ARE)=$($(BLD_WHERE_THE_LIBRARY_THINGS_ARE))" >> env.sh
 ifneq "$(PERL_DIR)" ""
 	echo "export PERL5LIB=$(PERL_DIR)/lib/site_perl/5.12.4/x86_64-linux:$(PERL_DIR)/lib/site_perl/5.12.4:$(PERL_DIR)/lib/5.12.4/x86_64-linux:$(PERL_DIR)/lib/5.12.4" >> env.sh
 endif
@@ -607,7 +605,7 @@ mgmtcopy :
 
 libcopy=(cd $(1) && tar cf - $(2)) | (cd $(3) && tar xvf -)$(check_pipe_for_errors)
 
-copylibs : thirdparty-dist
+copylibs :
 	# Create the python directory to flag to build scripts that python has been handled
 	mkdir -p $(INSTLOC)/ext/python
 	@if [ ! -z "$(PYTHONHOME)" ]; then \

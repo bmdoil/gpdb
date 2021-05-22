@@ -6,14 +6,6 @@ ifeq "$(BLD_ARCH)" ""
 export BLD_ARCH:=$(shell $(BLD_TOP)/releng/set_bld_arch.sh)
 endif
 
-# include thirdparty infrastructure which depends on WHERE_THE...
-BLD_WHERE_THE_LIBRARY_THINGS_ARE=LD_LIBRARY_PATH
-ifneq "$($(BLD_ARCH)_WHERE_THE_LIBRARY_THINGS_ARE)" ""
-BLD_WHERE_THE_LIBRARY_THINGS_ARE=$($(BLD_ARCH)_WHERE_THE_LIBRARY_THINGS_ARE)
-endif
-
-include $(BLD_TOP)/Makefile.thirdparty
-
 # get current working directory with symlinks maintained
 HERE:=$(shell pwd -L)
 
@@ -36,10 +28,6 @@ ifneq "$($(BLD_ARCH)_CXX)" ""
 export CXX=$($(BLD_ARCH)_CXX)
 endif
 
-BLD_LD_LIBRARY_PATH_PREPEND=$($(BLD_ARCH)_LD_LIBRARY_PATH_PREPEND)
-ifneq "$(BLD_LD_LIBRARY_PATH_PREPEND)" ""
-export $(BLD_WHERE_THE_LIBRARY_THINGS_ARE):=$(BLD_LD_LIBRARY_PATH_PREPEND):$($(BLD_WHERE_THE_LIBRARY_THINGS_ARE))
-endif
 export BLD_LD_LIBRARY_PATH_FIXED=true
 
 
@@ -49,7 +37,6 @@ export BLD_LD_LIBRARY_PATH_FIXED=true
 
 ifeq "$(ENABLE_MAKE_WARNING)" "true"
 $(warning PATH=$(PATH))
-$(warning $(BLD_WHERE_THE_LIBRARY_THINGS_ARE)=$($(BLD_WHERE_THE_LIBRARY_THINGS_ARE)))
 endif
 
 # disable our gcc wrapper
