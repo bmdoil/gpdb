@@ -124,9 +124,9 @@ DEFPORT=5432
 
 ORCA_CONFIG=--enable-orca
 
-rhel6_x86_64_CONFIGFLAGS=--with-quicklz  --enable-gpperfmon --with-gssapi --enable-mapreduce --enable-orafce --enable-ic-proxy ${ORCA_CONFIG} --with-libxml $(APU_CONFIG)
-rhel7_x86_64_CONFIGFLAGS=--with-quicklz  --enable-gpperfmon --with-gssapi --enable-mapreduce --enable-orafce --enable-ic-proxy ${ORCA_CONFIG} --with-libxml $(APU_CONFIG)
-rhel8_x86_64_CONFIGFLAGS=--with-quicklz  --disable-gpperfmon --with-gssapi --enable-mapreduce --enable-orafce --enable-ic-proxy ${ORCA_CONFIG} --with-libxml $(APU_CONFIG)
+rhel6_x86_64_CONFIGFLAGS=--with-quicklz  --enable-gpperfmon --with-gssapi --enable-mapreduce --enable-orafce --enable-ic-proxy ${ORCA_CONFIG} --with-libxml
+rhel7_x86_64_CONFIGFLAGS=--with-quicklz  --enable-gpperfmon --with-gssapi --enable-mapreduce --enable-orafce --enable-ic-proxy ${ORCA_CONFIG} --with-libxml
+rhel8_x86_64_CONFIGFLAGS=--with-quicklz  --disable-gpperfmon --with-gssapi --enable-mapreduce --enable-orafce --enable-ic-proxy ${ORCA_CONFIG} --with-libxml
 linux_x86_64_CONFIGFLAGS=${ORCA_CONFIG} --with-libxml
 ubuntu18.04_x86_64_CONFIGFLAGS=--with-quicklz --enable-gpperfmon --with-gssapi --enable-mapreduce --enable-orafce --enable-ic-proxy ${ORCA_CONFIG} --with-libxml
 sles12_x86_64_CONFIGFLAGS=--with-quicklz --enable-gpperfmon --with-gssapi --enable-mapreduce --enable-orafce --enable-ic-proxy ${ORCA_CONFIG} --with-libxml
@@ -146,11 +146,9 @@ CONFIGFLAGS+= --with-tcl-config=${TCL_CFG}
 endif
 endif
 
-BLD_PTHREADS_LIB_DIR=$($(BLD_ARCH)_PTHREADS_LIB_DIR)
-
 # Configure in thirdparty libraries from the ext/ directory
-CONFIG_INCLUDES=$(BLD_THIRDPARTY_INCLUDE_DIR) $(BLD_THIRDPARTY_INCLUDE_DIR)/libxml2
-CONFIG_LIBRARIES=$(strip $(BLD_THIRDPARTY_LIB_DIR) $(BLD_CXX_LIB_DIR) $(BLD_PTHREADS_LIB_DIR))
+CONFIG_INCLUDES=$(BLD_THIRDPARTY_INCLUDE_DIR)
+CONFIG_LIBRARIES=$(strip $(BLD_THIRDPARTY_LIB_DIR) $(BLD_CXX_LIB_DIR))
 CONFIGFLAGS+= --with-openssl --with-pam --with-ldap --with-includes="$(CONFIG_INCLUDES)" --with-libraries="$(CONFIG_LIBRARIES)"
 
 CONFIG_ADDITIONS=$($(BLD_ARCH)_CONFIG_ADDITIONS)
@@ -386,8 +384,6 @@ define tmpCLIENTS_FILESET_BINEXT
 endef
 CLIENTS_FILESET_BINEXT = $(strip $(tmpCLIENTS_FILESET_BINEXT))
 
-# define python file subset to ship by platform, as desired
-BLD_PYTHON_FILESET=.
 
 BLD_OS:=$(shell uname -s)
 Darwin_CLIENTS_LIBS=libcrypto.*.dylib libssl.*.dylib libpq.*.dylib* libkrb5.*.dylib libcom_err.*.dylib libldap_r-*.dylib libk5crypto.*.dylib libkrb5support.*.dylib liblber-*.dylib libyaml*.dylib
@@ -431,29 +427,29 @@ ifeq "$(findstring clients,$(BLD_TARGETS))" ""
 else
 	# ---- copy GPDB fileset ----
 	mkdir -p $(CLIENTSINSTLOC_BIN)
-	(cd $(INSTLOC)/bin/ && $(TAR) cf - $(CLIENTS_FILESET_BIN)) | (cd $(CLIENTSINSTLOC_BIN)/ && $(TAR) xpf -)$(check_pipe_for_errors)
+	(cd $(INSTLOC)/bin/ && tar cf - $(CLIENTS_FILESET_BIN)) | (cd $(CLIENTSINSTLOC_BIN)/ && tar xpf -)$(check_pipe_for_errors)
 	mkdir -p $(CLIENTSINSTLOC_BINEXT)
-	(cd $(GPMGMT)/bin/ext/ && $(TAR) cf - $(CLIENTS_FILESET_BINEXT)) | (cd $(CLIENTSINSTLOC_BINEXT)/ && $(TAR) xpf -)$(check_pipe_for_errors)
+	(cd $(GPMGMT)/bin/ext/ && tar cf - $(CLIENTS_FILESET_BINEXT)) | (cd $(CLIENTSINSTLOC_BINEXT)/ && tar xpf -)$(check_pipe_for_errors)
 ifneq "$(PYTHONHOME)" ""
 	mkdir -p $(CLIENTSINSTLOC_EXT)/python
-	(cd $(PYTHONHOME) && $(TAR) cf - $(BLD_PYTHON_FILESET)) | (cd $(CLIENTSINSTLOC_EXT)/python/ && $(TAR) xpf -)$(check_pipe_for_errors)
+	(cd $(PYTHONHOME) && tar cf - .) | (cd $(CLIENTSINSTLOC_EXT)/python/ && tar xpf -)$(check_pipe_for_errors)
 endif
 	mkdir -p $(CLIENTSINSTLOC_LIB)
  ifneq "$(CLIENTS_FILESET_LIB)" ""
-	 (cd $(INSTLOC)/lib/ && $(TAR) cf - $(CLIENTS_FILESET_LIB)) | (cd $(CLIENTSINSTLOC_LIB)/ && $(TAR) xpf -)$(check_pipe_for_errors)
+	 (cd $(INSTLOC)/lib/ && tar cf - $(CLIENTS_FILESET_LIB)) | (cd $(CLIENTSINSTLOC_LIB)/ && tar xpf -)$(check_pipe_for_errors)
  endif
 ifneq "$(FILESET_LIB_GCC)" ""
-	(cd $(CLIENTSINSTLOC_LIB)/ && $(TAR) cf - -C $(FILESET_LIB_GCC_LOC) $(FILESET_LIB_GCC) | $(TAR) xpf -)$(check_pipe_for_errors)
+	(cd $(CLIENTSINSTLOC_LIB)/ && tar cf - -C $(FILESET_LIB_GCC_LOC) $(FILESET_LIB_GCC) | tar xpf -)$(check_pipe_for_errors)
 endif
 ifneq "$(CLIENTS_FILESET_LIB_PERZL)" ""
 	# include libraries from www.perzl.org needed by the pware Python-2.6.1 build
 	mkdir -p $(CLIENTSINSTLOC_LIB_PWARE)
-	($(TAR) cf - -C $(CLIENTS_FILESET_LIB_PERZL_LOC) $(CLIENTS_FILESET_LIB_PERZL)) | ($(TAR) xpf - -C $(CLIENTSINSTLOC_LIB_PWARE))$(check_pipe_for_errors)
+	(tar cf - -C $(CLIENTS_FILESET_LIB_PERZL_LOC) $(CLIENTS_FILESET_LIB_PERZL)) | (tar xpf - -C $(CLIENTSINSTLOC_LIB_PWARE))$(check_pipe_for_errors)
 endif
 ifneq "$(CLIENTS_FILESET_LIB_PWARE)" ""
 	# include libraries from pware needed by the pware Python-2.6.1 build
 	mkdir -p $(CLIENTSINSTLOC_LIB_PWARE)
-	($(TAR) cf - -C $(PYTHONHOME)/lib $(CLIENTS_FILESET_LIB_PWARE)) | ($(TAR) xpf - -C $(CLIENTSINSTLOC_LIB_PWARE))$(check_pipe_for_errors)
+	(tar cf - -C $(PYTHONHOME)/lib $(CLIENTS_FILESET_LIB_PWARE)) | (tar xpf - -C $(CLIENTSINSTLOC_LIB_PWARE))$(check_pipe_for_errors)
 endif
 	# ---- copy scripts fileset ----
 	mkdir -p $(CLIENTSINSTLOC)
@@ -593,11 +589,11 @@ mgmtcopy :
 	if [ -d $(GPMGMT)/doc ]; then cp -rp $(GPMGMT)/doc $(INSTLOC)/docs/cli_help; fi
 	if [ -d $(GPMGMT)/demo/gpmapreduce ]; then \
 	  mkdir -p $(INSTLOC)/demo; \
-	  $(TAR) -C $(GPMGMT)/demo -czf $(INSTLOC)/demo/gpmapreduce.tar.gz gpmapreduce; \
+	  tar -C $(GPMGMT)/demo -czf $(INSTLOC)/demo/gpmapreduce.tar.gz gpmapreduce; \
 	fi
 	if [ -d $(GPMGMT)/demo/gpfdist_transform ]; then \
 	  mkdir -p $(INSTLOC)/demo; \
-	  $(TAR) -C $(GPMGMT)/demo -czf $(INSTLOC)/demo/gpfdist_transform.tar.gz gpfdist_transform; \
+	  tar -C $(GPMGMT)/demo -czf $(INSTLOC)/demo/gpfdist_transform.tar.gz gpfdist_transform; \
 	fi
 	$(MAKE) set_scripts_version INSTLOC=$(INSTLOC)
 	# Remove unwanted files.
@@ -612,14 +608,14 @@ mgmtcopy :
 	rm -rf $(INSTLOC)/bin/gppylib
 	find $(INSTLOC)/lib/python/gppylib -name test -type d | xargs rm -rf
 
-libcopy=(cd $(1) && $(TAR) cf - $(2)) | (cd $(3) && $(TAR) xvf -)$(check_pipe_for_errors)
+libcopy=(cd $(1) && tar cf - $(2)) | (cd $(3) && tar xvf -)$(check_pipe_for_errors)
 
 copylibs : thirdparty-dist
 	# Create the python directory to flag to build scripts that python has been handled
 	mkdir -p $(INSTLOC)/ext/python
 	@if [ ! -z "$(PYTHONHOME)" ]; then \
-	    echo "Copying python, $(BLD_PYTHON_FILESET), from $(PYTHONHOME) into $(INSTLOC)/ext/python..."; \
-	    (cd $(PYTHONHOME) && $(TAR) cf - $(BLD_PYTHON_FILESET)) | (cd $(INSTLOC)/ext/python/ && $(TAR) xpf -); \
+	    echo "Copying python, ., from $(PYTHONHOME) into $(INSTLOC)/ext/python..."; \
+	    (cd $(PYTHONHOME) && tar cf - .) | (cd $(INSTLOC)/ext/python/ && tar xpf -); \
 		echo "...DONE"; \
 	else \
 	    echo "INFO: Python not found on this platform, $(BLD_ARCH), not copying it into the GPDB package."; \
