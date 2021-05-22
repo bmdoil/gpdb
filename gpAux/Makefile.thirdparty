@@ -128,11 +128,11 @@ thirdparty-dist-base: $(BLD_THIRDPARTY_BASE_SHARED_OBJECTS_INSTALLED) ;
 thirdparty-dist-exceptions: $(BLD_THIRDPARTY_EXCEPTIONS_INSTALLED) ;
 
 $(INSTLOC)/lib/%: $(BLD_THIRDPARTY_LIB_DIR)/%
-	@(cd $(?D) && $(TAR) cf - $(@F)) | (cd $(INSTLOC)/lib && $(TAR) xf -)$(check_pipe_for_errors)
+	@(cd $(?D) && tar cf - $(@F)) | (cd $(INSTLOC)/lib && tar xf -)$(check_pipe_for_errors)
 
 $(INSTLOC)/lib/%: $(BLD_THIRDPARTY_EXCEPTIONS_DIRS)/lib/%
 	@for i in $?; do \
 	    echo "Copying $(?D)/$(@F) to $(@D)..."; \
-	    (cd `dirname $$i` && $(TAR) cf - $(@F)) | (cd $(@D) && $(TAR) xvf -)$(check_pipe_for_errors); \
+	    (cd `dirname $$i` && tar cf - $(@F)) | (cd $(@D) && tar xvf -)$(check_pipe_for_errors); \
 	done
 endif
