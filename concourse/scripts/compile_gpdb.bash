@@ -46,6 +46,29 @@ function install_python() {
 	ldconfig
 }
 
+function build_xerces() {
+
+
+	echo "Building Xerces-C"
+	mkdir -p xerces_patch/concourse
+
+	orca_src="${GPDB_SRC_PATH}/src/backend/gporca"
+
+	cp -r "${orca_src}/concourse/xerces-c" xerces_patch/concourse
+
+	/usr/bin/env python xerces_patch/concourse/xerces-c/build_xerces.py --output_dir="/usr"
+	rm -rf build
+	ldconfig
+
+}
+
+function include_xerces() {
+	xerces_so=$(find /usr/lib* -name libxerces-c-3.1.so)
+	pushd ${GREENPLUM_INSTALL_DIR}
+	cp -d ${xerces_so} lib
+	popd
+}
+
 function generate_build_number() {
 	pushd ${GPDB_SRC_PATH}
 	# Only if its git repo, add commit SHA as build number
@@ -191,20 +214,6 @@ function export_gpdb_clients() {
 	popd
 }
 
-build_xerces() {
-	echo "Building Xerces-C"
-	mkdir -p xerces_patch/concourse
-
-	orca_src="${GPDB_SRC_PATH}/src/backend/gporca"
-
-	cp -r "${orca_src}/concourse/xerces-c" xerces_patch/concourse
-
-	/usr/bin/env python xerces_patch/concourse/xerces-c/build_xerces.py --output_dir="/usr"
-	rm -rf build
-
-	ldconfig
-}
-
 function _main() {
 
 	prep_env
@@ -223,6 +232,7 @@ function _main() {
 	include_quicklz
 	include_libuv
 	include_libstdcxx
+	include_xerces
 
 	export_gpdb
 	export_gpdb_extensions

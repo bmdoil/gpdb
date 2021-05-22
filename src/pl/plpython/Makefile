@@ -41,7 +41,7 @@ ifeq ($(shared_libpython),yes)
 override CPPFLAGS := -Wno-error -I. -I$(srcdir) $(python_includespec) $(CPPFLAGS)
 
 rpathdir = $(python_libdir):$(INSTLOC)/ext/python/lib
-
+LDFLAGS += -Wl,-rpath,\$$ORIGIN/../../ext/python/lib/ -Wl,--enable-new-dtags
 NAME = plpython$(python_majorversion)
 
 OBJS = \
