@@ -33,12 +33,17 @@ function prep_env() {
 	fi
 }
 
-function link_python() {
+function install_python() {
 	if [[ "${OS}" == "centos" ]] && [[ "${OS_VERSION}" == "8" ]]; then
-		ln -sf /opt/python-2.7.17 "$(pwd)/${GPDB_EXT_PATH}/python-2.7.17"
+		PYTHON_VERSION="2.7.17"
 	else
-		ln -sf /opt/python-2.7.12 "$(pwd)/${GPDB_EXT_PATH}/python-2.7.12"
+		PYTHON_VERSION="2.7.12"
 	fi
+	echo "Installing python"
+	export PATH="/opt/python-${PYTHON_VERSION}/bin:${PATH}"
+	export PYTHONHOME="/opt/python-${PYTHON_VERSION}"
+	echo "/opt/python-${PYTHON_VERSION}/lib" >>/etc/ld.so.conf.d/gpdb.conf
+	ldconfig
 }
 
 function generate_build_number() {
@@ -186,12 +191,18 @@ function export_gpdb_clients() {
 	popd
 }
 
-function build_xerces() {
-	OUTPUT_DIR="${GPDB_EXT_PATH}"
+build_xerces() {
+	echo "Building Xerces-C"
 	mkdir -p xerces_patch/concourse
-	cp -r gpdb_src/src/backend/gporca/concourse/xerces-c xerces_patch/concourse
-	/usr/bin/python xerces_patch/concourse/xerces-c/build_xerces.py --output_dir="${OUTPUT_DIR}"
+
+	orca_src="${GPDB_SRC_PATH}/src/backend/gporca"
+
+	cp -r "${orca_src}/concourse/xerces-c" xerces_patch/concourse
+
+	/usr/bin/env python xerces_patch/concourse/xerces-c/build_xerces.py --output_dir="/usr"
 	rm -rf build
+
+	ldconfig
 }
 
 function _main() {
@@ -199,7 +210,7 @@ function _main() {
 	prep_env
 
 	build_xerces
-	link_python
+	install_python
 	generate_build_number
 	build_gpdb "${BLD_TARGET_OPTION[@]}"
 	git_info
