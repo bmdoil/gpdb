@@ -14,7 +14,6 @@ function prep_env() {
 	export BLD_ARCH=$(build_arch)
 
 	GPDB_SRC_PATH=${GPDB_SRC_PATH:=gpdb_src}
-	GPDB_EXT_PATH=${GPDB_SRC_PATH}/gpAux/ext/${BLD_ARCH}
 	GPDB_BIN_FILENAME=${GPDB_BIN_FILENAME:="bin_gpdb.tar.gz"}
 	GPDB_CL_FILENAME=${GPDB_CL_FILENAME:="bin_gpdb_clients.tar.gz"}
 
@@ -44,22 +43,6 @@ function install_python() {
 	export PYTHONHOME="/opt/python-${PYTHON_VERSION}"
 	echo "/opt/python-${PYTHON_VERSION}/lib" >>/etc/ld.so.conf.d/gpdb.conf
 	ldconfig
-}
-
-function build_xerces() {
-
-
-	echo "Building Xerces-C"
-	mkdir -p xerces_patch/concourse
-
-	orca_src="${GPDB_SRC_PATH}/src/backend/gporca"
-
-	cp -r "${orca_src}/concourse/xerces-c" xerces_patch/concourse
-
-	/usr/bin/env python xerces_patch/concourse/xerces-c/build_xerces.py --output_dir="/usr"
-	rm -rf build
-	ldconfig
-
 }
 
 function include_xerces() {
@@ -218,7 +201,6 @@ function _main() {
 
 	prep_env
 
-	build_xerces
 	install_python
 	generate_build_number
 	build_gpdb "${BLD_TARGET_OPTION[@]}"
