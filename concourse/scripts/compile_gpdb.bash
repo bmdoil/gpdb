@@ -22,6 +22,7 @@ function prep_env() {
 	GREENPLUM_CL_INSTALL_DIR=/usr/local/greenplum-clients-devel
 
 	mkdir -p "${GPDB_ARTIFACTS_DIR}"
+	mkdir -p "${GPDB_EXT_PATH}"
 
 	# By default, only GPDB Server binary is build.
 	# Use BLD_TARGETS flag with appropriate value string to generate client, loaders
@@ -39,6 +40,13 @@ function link_python() {
 	else
 		ln -sf /opt/python-2.7.12 "$(pwd)/${GPDB_EXT_PATH}/python-2.7.12"
 	fi
+}
+
+function include_xerces() {
+	xerces_so=$(find /usr/local/lib -name libxerces-c*.so)
+	pushd ${GREENPLUM_INSTALL_DIR}
+	cp -a ${xerces_so} lib
+	popd
 }
 
 function generate_build_number() {
@@ -94,9 +102,9 @@ function include_zstd() {
 	*) return ;;
 	esac
 	pushd ${GREENPLUM_INSTALL_DIR}
-	cp ${libdir}/pkgconfig/libzstd.pc lib/pkgconfig
-	cp -d ${libdir}/libzstd.so* lib
-	cp /usr/include/zstd*.h include
+	cp -a ${libdir}/pkgconfig/libzstd.pc lib/pkgconfig
+	cp -a ${libdir}/libzstd.so* lib
+	cp -a /usr/include/zstd*.h include
 	popd
 }
 
@@ -108,7 +116,7 @@ function include_quicklz() {
 	*) return ;;
 	esac
 	pushd ${GREENPLUM_INSTALL_DIR}
-	cp -d ${libdir}/libquicklz.so* lib
+	cp -a ${libdir}/libquicklz.so* lib
 	popd
 }
 
@@ -120,7 +128,7 @@ function include_libstdcxx() {
 			*.py) ;;
 				# we don't vendor libstdc++.so.*-gdb.py
 			*)
-				cp -d "$libfile" ${GREENPLUM_INSTALL_DIR}/lib
+				cp -a "$libfile" ${GREENPLUM_INSTALL_DIR}/lib
 				;; # vendor everything else
 			esac
 		done
@@ -186,19 +194,10 @@ function export_gpdb_clients() {
 	popd
 }
 
-function build_xerces() {
-	OUTPUT_DIR="${GPDB_EXT_PATH}"
-	mkdir -p xerces_patch/concourse
-	cp -r gpdb_src/src/backend/gporca/concourse/xerces-c xerces_patch/concourse
-	/usr/bin/python xerces_patch/concourse/xerces-c/build_xerces.py --output_dir="${OUTPUT_DIR}"
-	rm -rf build
-}
-
 function _main() {
 
 	prep_env
 
-	build_xerces
 	link_python
 	generate_build_number
 	build_gpdb "${BLD_TARGET_OPTION[@]}"
@@ -212,6 +211,7 @@ function _main() {
 	include_quicklz
 	include_libuv
 	include_libstdcxx
+	include_xerces
 
 	export_gpdb
 	export_gpdb_extensions
