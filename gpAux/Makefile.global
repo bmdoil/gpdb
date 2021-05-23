@@ -28,8 +28,6 @@ ifneq "$($(BLD_ARCH)_CXX)" ""
 export CXX=$($(BLD_ARCH)_CXX)
 endif
 
-export BLD_LD_LIBRARY_PATH_FIXED=true
-
 
 ##
 ## Control if PATH and LD_LIBRARY_PATH|DYLD_LIBRARY_PATH values are displayed.
@@ -37,6 +35,7 @@ export BLD_LD_LIBRARY_PATH_FIXED=true
 
 ifeq "$(ENABLE_MAKE_WARNING)" "true"
 $(warning PATH=$(PATH))
+$(warning BLD_LD_LIBRARY_PATH=$(BLD_LD_LIBRARY_PATH))
 endif
 
 # disable our gcc wrapper
@@ -50,17 +49,8 @@ BLD_CFLAGS=$($(BLD_ARCH)_BLD_CFLAGS)
 
 BLD_LDFLAGS=$($(BLD_ARCH)_BLD_LDFLAGS)
 
-BLD_BITS:=$(strip $(findstring 32,$(BLD_ARCH)) $(findstring 64,$(BLD_ARCH)))
-ifeq "$(BLD_BITS)" ""
-BLD_BITS=$($(BLD_ARCH)_BLD_BITS)
-endif
-
 ifeq "$(BLD_ARCH)" ""
 $(error Unable to determine value for BLD_ARCH!  You may set this on the command line.)
-endif
-
-ifeq "$(BLD_BITS)" ""
-$(error Unable to determine value for BLD_BITS!  You may set this on the command line.)
 endif
 
 # Functions for use in this and including makefiles
