@@ -9,24 +9,8 @@ endif
 # get current working directory with symlinks maintained
 HERE:=$(shell pwd -L)
 
-# override MPP_ARCH values on BLD_ARCH's not native to the build server (e.g., 32-bit builds on 64-bit OSes)
-ifneq "$($(BLD_ARCH)_MPP_ARCH)" ""
-export MPP_ARCH=$($(BLD_ARCH)_MPP_ARCH)
-endif
-
 # take over the gcc version we use
 BLD_CC=gcc
-
-ifneq "$($(BLD_ARCH)_CC)" ""
-BLD_CC=$($(BLD_ARCH)_CC)
-export CC=$(BLD_CC)
-export CPP=$(subst gcc,cpp,$(BLD_CC))
-export CXX=$(subst gcc,g++,$(BLD_CC))
-endif
-
-ifneq "$($(BLD_ARCH)_CXX)" ""
-export CXX=$($(BLD_ARCH)_CXX)
-endif
 
 
 ##
