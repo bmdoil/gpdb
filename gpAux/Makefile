@@ -24,7 +24,7 @@ all : devel
 .PHONY : autoconf
 
 # Internal functions which are invoked by other rules within this makefile
-.PHONY : copydocs mgmtcopy copylibs
+.PHONY : mgmtcopy copylibs
 .PHONY : greenplum_path RECONFIG HOMEDEP GPROOTDEP GPROOTDEP GPROOTFAIL
 .PHONY : gccVersionCheck clients
 
@@ -51,7 +51,6 @@ RELEASE=devel
 GPDIR=greenplum-db-$(RELEASE)
 PLRDIR=greenplum-plr-$(RELEASE)
 CLIENTSDIR=greenplum-clients-$(RELEASE)
-GPDOCDIR=$(CURDIR)/docs/release
 
 DISTPATH=$(GPROOT)/$(GPDIR)
 CLIENTSDISTPATH=$(GPROOT)/$(CLIENTSDIR)
@@ -186,7 +185,6 @@ define BUILD_STEPS
 	cd $(BUILDDIR)/src/pl/plperl && $(MAKE) clean && echo "LDFLAGS += -Wl,-rpath,$(perl_archlibexp)/CORE -Wl,--enable-new-dtags" >> GNUmakefile && echo "LDFLAGS_SL += -Wl,-rpath,$(perl_archlibexp)/CORE -Wl,--enable-new-dtags" >> GNUmakefile && $(MAKE) $(PARALLEL_MAKE_OPTS) install && cd $(BUILDDIR)
 	#@$(MAKE) mgmtcopy INSTLOC=$(INSTLOC)
 	@$(MAKE) mkpgbouncer INSTLOC=$(INSTLOC) BUILDDIR=$(BUILDDIR)
-	@$(MAKE) copydocs INSTLOC=$(INSTLOC)
 	@$(MAKE) copylibs INSTLOC=$(INSTLOC)
 	@$(MAKE) greenplum_path INSTLOC=$(INSTLOC)
 	@$(MAKE) clients INSTLOC=$(INSTLOC) CLIENTSINSTLOC=$(CLIENTSINSTLOC)
@@ -473,22 +471,6 @@ else
 	@cd extensions/pgbouncer/source && ./configure --prefix=$(INSTLOC) --enable-evdns --with-pam
 	$(MAKE) -C extensions/pgbouncer/source install
 endif
-
-copydocs :
-	@if [ ! -d $(INSTLOC)/docs ] ; then mkdir -p $(INSTLOC)/docs; fi
-	@if [ ! -d $(GPDOCDIR) ] ; then \
-	    echo "Error Copying Documentation: $(GPDOCDIR) is not present"; \
-	else  echo "Copying Documentation" ;  \
-	    if [ -d $(INSTLOC)/doc/postgresql/contrib ] ; then \
-	        mkdir -p $(INSTLOC)/docs/contrib ; \
-	        echo "Copying postgresql contrib documentation" ; \
-		cp -r $(INSTLOC)/doc/postgresql/contrib/* $(INSTLOC)/docs/contrib ; \
-	    fi ; \
-	fi
-	@if [ -d $(INSTLOC)/doc ] ; then \
-	    echo "Removing $(INSTLOC)/doc" ; \
-	    rm -rf $(INSTLOC)/doc ; \
-	fi
 
 mgmtcopy :
 	#Copy the management utilities
