@@ -48,7 +48,7 @@ function install_python() {
 function include_xerces() {
 	xerces_so=$(find /usr/lib* -name libxerces-c-3.1.so)
 	pushd ${GREENPLUM_INSTALL_DIR}
-	cp -d ${xerces_so} lib
+	cp -a ${xerces_so} lib
 	popd
 }
 
