@@ -36,7 +36,6 @@ endif
 ifeq ($(with_openssl), yes)
 	$(MAKE) -C contrib/sslinfo all
 endif
-	$(MAKE) -C gpAux/extensions all
 	$(MAKE) -C gpAux/gpperfmon all
 	$(MAKE) -C gpAux/platform all
 	$(MAKE) -C gpMgmt all
@@ -80,7 +79,6 @@ ifeq ($(with_openssl), yes)
 	$(MAKE) -C contrib/sslinfo $@
 endif
 	$(MAKE) -C gpMgmt $@
-	$(MAKE) -C gpAux/extensions $@
 	$(MAKE) -C gpAux/gpperfmon $@
 	$(MAKE) -C gpAux/platform $@
 	$(MAKE) -C gpcontrib $@
@@ -109,7 +107,6 @@ clean:
 # leap over gpAux/Makefile into subdirectories to avoid circular dependency.
 # gpAux/Makefile is the entry point for the enterprise build, which ends up
 # calling top-level configure and this Makefile
-	$(MAKE) -C gpAux/extensions $@
 	$(MAKE) -C gpAux/gpperfmon $@
 	$(MAKE) -C gpAux/platform $@
 	$(MAKE) -C gpMgmt $@
@@ -118,7 +115,6 @@ clean:
 # will be gone too soon.
 distclean maintainer-clean:
 #	$(MAKE) -C doc $@
-	$(MAKE) -C gpAux/extensions $@
 	$(MAKE) -C gpAux/gpperfmon $@
 	$(MAKE) -C gpAux/platform $@
 	$(MAKE) -C contrib $@
