@@ -21,6 +21,11 @@ function prep_env() {
 	GREENPLUM_INSTALL_DIR=/usr/local/greenplum-db-devel
 	GREENPLUM_CL_INSTALL_DIR=/usr/local/greenplum-clients-devel
 
+	# vendored library libdir and includedir
+	LIBDIR=/usr/local/lib64
+	INCLUDEDIR=/usr/local/include
+
+	mkdir -p "${GPDB_EXT_PATH}"
 	mkdir -p "${GPDB_ARTIFACTS_DIR}"
 
 	# By default, only GPDB Server binary is build.
@@ -87,33 +92,28 @@ function unittest_check_gpdb() {
 }
 
 function include_zstd() {
-	local libdir
-	case "${OS}" in
-	centos | sles | photon) libdir=/usr/lib64 ;;
-	ubuntu) libdir=/usr/lib ;;
-	*) return ;;
-	esac
 	pushd ${GREENPLUM_INSTALL_DIR}
-	cp ${libdir}/pkgconfig/libzstd.pc lib/pkgconfig
-	cp -d ${libdir}/libzstd.so* lib
-	cp /usr/include/zstd*.h include
+	cp -av ${LIBDIR}/pkgconfig/libzstd.pc lib/pkgconfig
+	cp -av ${LIBDIR}/libzstd.so* lib
+	cp -av ${INCLUDEDIR}/zstd*.h include
 	popd
 }
 
 function include_quicklz() {
-	local libdir
-	case "${OS}" in
-	centos | sles | photon) libdir=/usr/lib64 ;;
-	ubuntu) libdir=/usr/local/lib ;;
-	*) return ;;
-	esac
 	pushd ${GREENPLUM_INSTALL_DIR}
-	cp -d ${libdir}/libquicklz.so* lib
+	cp -av ${LIBDIR}/libquicklz.so* lib
+	popd
+}
+
+function include_xerces() {
+	pushd ${GREENPLUM_INSTALL_DIR}
+	cp -av ${LIBDIR}/libxerces-c*.so* lib
+	cp -av ${INCLUDEDIR}/xercesc* include
 	popd
 }
 
 function include_libstdcxx() {
-	if [[ "${OS}" == "centos" ]] && [[ "${OS_VERSION}" != "8" ]]; then
+	if [[ -d /opt/gcc-6*/lib64 ]]; then
 		pushd /opt/gcc-6*/lib64
 		for libfile in libstdc++.so.*; do
 			case $libfile in
@@ -130,18 +130,19 @@ function include_libstdcxx() {
 }
 
 function include_libuv() {
-	local includedir=/usr/include
-	local libdir
-	case "${OS}" in
-	centos | sles | photon) libdir=/usr/lib64 ;;
-	ubuntu) libdir=/usr/lib/x86_64-linux-gnu ;;
-	*) return ;;
-	esac
 	pushd ${GREENPLUM_INSTALL_DIR}
 	# need to include both uv.h and uv/*.h
-	cp -a ${includedir}/uv* include
-	cp -a ${libdir}/libuv.so* lib
+	cp -a ${INCLUDEDIR}/uv* include
+	cp -a ${LIBDIR}/libuv.so* lib
 	popd
+}
+
+function include_dependencies() {
+	include_libstdcxx
+	include_libuv
+	include_quicklz
+	include_xerces
+	include_zstd
 }
 
 function export_gpdb() {
@@ -186,19 +187,10 @@ function export_gpdb_clients() {
 	popd
 }
 
-function build_xerces() {
-	OUTPUT_DIR="${GPDB_EXT_PATH}"
-	mkdir -p xerces_patch/concourse
-	cp -r gpdb_src/src/backend/gporca/concourse/xerces-c xerces_patch/concourse
-	/usr/bin/python xerces_patch/concourse/xerces-c/build_xerces.py --output_dir="${OUTPUT_DIR}"
-	rm -rf build
-}
-
 function _main() {
 
 	prep_env
 
-	build_xerces
 	link_python
 	generate_build_number
 	build_gpdb "${BLD_TARGET_OPTION[@]}"
@@ -208,10 +200,7 @@ function _main() {
 		unittest_check_gpdb
 	fi
 
-	include_zstd
-	include_quicklz
-	include_libuv
-	include_libstdcxx
+	include_dependencies
 
 	export_gpdb
 	export_gpdb_extensions
