@@ -91,7 +91,7 @@ function include_dependencies() {
 
 	header_search_path=( /usr/local/include/ /usr/include/ )
 	vendored_headers=(zstd*.h uv.h uv )
-
+	pkgconfigs=(libzstd.pc libuv.pc quicklz.pc)
 	vendored_libs=(libquicklz.so{,.1,.1.5.0} libzstd.so{,.1,.1.3.7} libuv.so{,.1,.1.0.0} libxerces-c{,-3.1}.so)
 
 	if [[ -d /opt/gcc-6.4.0 ]]; then
@@ -102,11 +102,13 @@ function include_dependencies() {
 	library_search_path+=( $(cat /etc/ld.so.conf.d/*.conf | grep -v '#') )
 	library_search_path+=( /lib64 /usr/lib64 /lib /usr/lib)
 
+
 	# Vendor shared libraries - follow symlinks
 	for path in "${library_search_path[@]}"; do if [[ -d "${path}" ]] ; then for lib in "${vendored_libs[@]}"; do find -L $path -name $lib -exec cp -avn '{}' ${GREENPLUM_INSTALL_DIR}/lib \;; done; fi; done;
 	# Vendor headers - follow symlinks
 	for path in "${header_search_path[@]}"; do if [[ -d "${path}" ]] ; then for header in "${vendored_headers[@]}"; do find -L $path -name $header -exec cp -avn '{}' ${GREENPLUM_INSTALL_DIR}/include \;; done; fi; done
-
+	# vendor pkgconfig files
+	for path in "${library_search_path[@]}"; do if [[ -d "${path}/pkgconfig" ]]; then for pkg in "${pkgconfigs[@]}"; do find -L "$path"/pkgconfig/ -name "$pkg" -exec cp -avn '{}' "${GREENPLUM_INSTALL_DIR}/lib/pkgconfig" \;; done; fi; done
 }
 
 function export_gpdb() {
