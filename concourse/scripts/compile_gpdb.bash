@@ -121,6 +121,8 @@ function export_gpdb() {
 
 	pushd ${GREENPLUM_INSTALL_DIR}
 	chmod -R 755 .
+	# Remove python bytecode
+	find . -type f \( -iname \*.pyc -o -iname \*.pyo \) -delete
 	tar -czf "${TARBALL}" ./*
 	popd
 
